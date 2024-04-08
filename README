@@ -1,0 +1,59 @@
+# Reinforcement Learning Agents
+
+This repository contains implementations of various reinforcement learning agents using PyTorch. The agents include Deep Q-Network (DQN) with Dueling Network architecture and REINFORCE (Monte Carlo Policy Gradient) algorithm.
+
+## Files
+
+### `agent.py`
+
+This file contains the implementation of two reinforcement learning agents:
+
+1. **DDQNAgent**: A Deep Q-Network (DQN) agent with Dueling Network architecture. It uses two neural networks: an online network for predicting Q-values and a target network for computing target Q-values during training. The agent also supports different types of forward passes (`forward_type_1` and `forward_type_2`) based on the Dueling Network architecture.
+
+2. **REINFORCEAgent**: An agent implementing the REINFORCE algorithm, which is a Monte Carlo Policy Gradient method. It uses a policy network to sample actions and a value network (optional) to estimate state values. The agent learns by maximizing the expected discounted returns using the policy gradient.
+
+Both agents inherit from the `BaseAgent` class, which stores common constant values and utility functions.
+
+### `replay_buffer.py`
+
+This file contains the implementation of the `ReplayBuffer` class, which is used to store and sample experiences for the DQN agent. The replay buffer allows for efficient experience replay during training.
+
+### `rl_networks.py`
+
+This file contains the implementation of neural network architectures used by the agents:
+
+1. **DuelingDQN**: A Dueling Deep Q-Network architecture used by the DDQNAgent. It consists of two streams: one for estimating the state value function (`V(s)`) and another for estimating the advantage function (`A(s,a)`). The Q-value is computed as `Q(s,a) = V(s) + (A(s,a) - 1/|A| * sum A(s,a'))` or `Q(s,a) = V(s) + (A(s,a) - max[A(s,a')])`, depending on the forward pass type (`forward_type_1` or `forward_type_2`).
+
+2. **REINFORCE**: A policy network used by the REINFORCEAgent to sample actions. It takes the state as input and outputs action probabilities.
+
+3. **REINFORCEValueNetwork**: A value function network used by the REINFORCEAgent (optional) to estimate state values.
+
+## Usage
+
+To use these agents, you need to instantiate them with the appropriate configurations and environments. For example:
+
+```python
+# Import the necessary classes
+from agent import DDQNAgent, REINFORCEAgent
+from replay_buffer import ReplayBuffer
+from rl_networks import DuelingDQN, REINFORCE, REINFORCEValueNetwork
+
+# Initialize the replay buffer
+replay_buffer = ReplayBuffer(buffer_size, n_actions, batch_size, device, seed)
+
+# Initialize the neural networks
+online_network = DuelingDQN(n_actions, n_states, seed, device)
+target_network = DuelingDQN(n_actions, n_states, seed, device)
+policy_network = REINFORCE(s_size, a_size, h_size, seed, device)
+value_network = REINFORCEValueNetwork(s_size, seed, device)
+
+# Initialize the agents
+dqn_agent = DDQNAgent(device, replay_buffer, online_network, target_network, optimizer)
+reinforce_agent = REINFORCEAgent(device, policy_network, optimizer, value_network, value_optimizer)
+
+# Train the agents
+...
+
+# Save the trained models
+torch.save(online_network.state_dict(), 'dqn_model.pth')
+torch.save(policy_network.state_dict(), 'reinforce_model.pth')
